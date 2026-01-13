@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+lancedb
+sentence-transformers
+jinja2
+python-multipart
+pandas
+torch
+numpy
