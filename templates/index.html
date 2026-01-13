@@ -1,140 +1,251 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>SCED Terminal Search</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Search Tool</title>
     <style>
+        /* Modern Reset & Base Styles */
+        :root {
+            --primary-color: #2563eb;
+            /* Modern Blue */
+            --primary-hover: #1d4ed8;
+            --bg-color: #f3f4f6;
+            /* Light Grey Background */
+            --card-bg: #ffffff;
+            /* White Card */
+            --text-main: #111827;
+            /* Dark Grey Text */
+            --text-secondary: #6b7280;
+            /* Muted Text */
+            --border-color: #d1d5db;
+        }
+
         body {
-            background-color: #0d1117;
-            color: #3fb950;
-            font-family: 'Courier New', Courier, monospace;
-            padding: 40px;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
             max-width: 800px;
-            margin: auto;
+            margin: 40px auto;
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
         h1 {
-            border-bottom: 2px solid #3fb950;
-            padding-bottom: 10px;
+            margin-top: 0;
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 1rem;
         }
 
-        .input-group {
-            margin-bottom: 20px;
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 1.5rem;
         }
 
         label {
             display: block;
-            margin-bottom: 5px;
-            opacity: 0.8;
+            font-weight: 500;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            color: #374151;
         }
 
         input[type="text"],
-        textarea {
+        textarea,
+        select {
+            display: block;
             width: 100%;
-            background-color: #000;
-            border: 1px solid #3fb950;
-            color: #3fb950;
-            padding: 10px;
-            font-family: inherit;
-            outline: none;
+            padding: 0.625rem 0.875rem;
+            /* Comfortable padding */
+            font-size: 1rem;
+            line-height: 1.5;
+            color: var(--text-main);
+            background-color: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
             box-sizing: border-box;
+            /* Ensures padding doesn't break width */
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
         }
 
-        input[type="text"]:focus,
-        textarea:focus {
-            box-shadow: 0 0 5px #3fb950;
+        input:focus,
+        textarea:focus,
+        select:focus {
+            border-color: var(--primary-color);
+            outline: 0;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
+        /* Button Styling */
         button {
-            background-color: #3fb950;
-            color: #000;
+            display: inline-block;
+            width: 100%;
+            font-weight: 600;
+            text-align: center;
+            vertical-align: middle;
+            user-select: none;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            border-radius: 6px;
             border: none;
-            padding: 10px 20px;
-            font-family: inherit;
-            font-weight: bold;
             cursor: pointer;
-            text-transform: uppercase;
-            margin-top: 10px;
+            transition: background-color 0.2s;
         }
 
         button:hover {
-            background-color: #2ea043;
+            background-color: var(--primary-hover);
         }
 
-        /* Results Table Styling */
-        .results-area {
-            margin-top: 40px;
-            border-top: 1px dashed #3fb950;
-            padding-top: 20px;
+        /* Results Area */
+        .results-header {
+            margin-top: 3rem;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-main);
         }
 
         .result-card {
-            border: 1px solid #30363d;
-            background: #161b22;
-            padding: 15px;
-            margin-bottom: 15px;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            transition: transform 0.1s ease;
         }
 
-        .meta {
-            color: #8b949e;
-            font-size: 0.9em;
-            margin-bottom: 5px;
+        .result-card:hover {
+            border-color: #d1d5db;
         }
 
-        .highlight {
-            color: #d2a8ff;
-            font-weight: bold;
+        .result-meta {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            display: flex;
+            gap: 10px;
         }
 
-        .desc {
-            color: #c9d1d9;
-            margin-top: 5px;
+        .result-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-desc {
+            font-size: 0.95rem;
+            color: #4b5563;
+        }
+
+        .badge {
+            background-color: #dbeafe;
+            color: #1e40af;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
         }
     </style>
 </head>
 
 <body>
-    <h1>> SCED_COURSE_SEARCH_V1</h1>
 
-    <form method="POST">
-        <div class="input-group">
-            <label>> SUBJECT (e.g., MATH, CS):</label>
-            <input type="text" name="subject" autocomplete="off">
-        </div>
+    <div class="container">
+        <h1>SCED Course Search</h1>
 
-        <div class="input-group">
-            <label>> TITLE (e.g., Calculus):</label>
-            <input type="text" name="title" autocomplete="off">
-        </div>
-
-        <div class="input-group">
-            <label>> DESCRIPTION (Semantic Search):</label>
-            <textarea name="description" rows="4"></textarea>
-        </div>
-
-        <button type="submit">EXECUTE QUERY</button>
-    </form>
-
-    {% if submitted %}
-    <div class="results-area">
-        <h2>> QUERY_RESULTS: {{ results|length }} FOUND</h2>
-
-        {% if results %}
-        {% for r in results %}
-        <div class="result-card">
-            <div class="meta">
-                [RANK: {{ r.rank }}] [DIST: {{ r.score }}]
-                <span class="highlight">{{ r.subject }} {{ r.course_code }}</span>
+        <form method="POST">
+            <div class="form-group">
+                <label for="subject">Subject Area</label>
+                <select name="subject" id="subject">
+                    <option value="">-- All Subjects --</option>
+                    <option value="English Language and Literature">English Language and Literature</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Life and Physical Science">Life and Physical Science</option>
+                    <option value="Social Sciences and History">Social Sciences and History</option>
+                    <option value="Visual and Performing Arts">Visual and Performing Arts</option>
+                    <option value="Religious Education and Theology">Religious Education and Theology</option>
+                    <option value="Physical, Health, and Safety Education">Physical, Health, and Safety Education
+                    </option>
+                    <option value="Military Science">Military Science</option>
+                    <option value="Information Technology">Information Technology</option>
+                    <option value="Communication and Audio/Visual Technology">Communication and Audio/Visual Technology
+                    </option>
+                    <option value="Business and Marketing">Business and Marketing</option>
+                    <option value="Manufacturing">Manufacturing</option>
+                    <option value="Health Care Science">Health Care Science</option>
+                    <option value="Public, Protective, and Government Services">Public, Protective, and Government
+                        Services</option>
+                    <option value="Hospitality and Tourism">Hospitality and Tourism</option>
+                    <option value="Architecture and Construction">Architecture and Construction</option>
+                    <option value="Agriculture, Food, and Natural Resources">Agriculture, Food, and Natural Resources
+                    </option>
+                    <option value="Human Services">Human Services</option>
+                    <option value="Transportation, Distribution and Logistics">Transportation, Distribution and
+                        Logistics</option>
+                    <option value="Engineering and Technology">Engineering and Technology</option>
+                    <option value="Miscellaneous">Miscellaneous</option>
+                    <option value="Non-Subject Specific">Non-Subject Specific</option>
+                    <option value="World Languages">World Languages</option>
+                    <option value="Integrative Learning">Integrative Learning</option>
+                </select>
             </div>
-            <div style="font-weight: bold; margin-bottom: 5px;">{{ r.title }}</div>
-            <div class="desc">{{ r.description_snippet }}</div>
+
+            <div class="form-group">
+                <label for="title">Course Title (Optional)</label>
+                <input type="text" name="title" id="title" placeholder="e.g., Introduction to Calculus">
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description (Semantic Search)</label>
+                <textarea name="description" id="description" rows="4"
+                    placeholder="Describe what the course covers..."></textarea>
+            </div>
+
+            <button type="submit">Search Courses</button>
+        </form>
+
+        {% if submitted %}
+        <div class="results-area">
+            <div class="results-header">Found {{ results|length }} Result{% if results|length != 1 %}s{% endif %}</div>
+
+            {% if results %}
+            {% for r in results %}
+            <div class="result-card">
+                <div class="result-meta">
+                    <span class="badge">{{ r.subject }}</span>
+                    <span>Code: {{ r.course_code }}</span>
+                </div>
+                <div class="result-title">{{ r.title }}</div>
+                <div class="result-desc">{{ r.description_snippet }}</div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div style="text-align: center; color: var(--text-secondary); padding: 20px;">
+                No matching courses found. Try broadening your search.
+            </div>
+            {% endif %}
         </div>
-        {% endfor %}
-        {% else %}
-        <p>> NO MATCHES FOUND OR INVALID INPUT COMBINATION.</p>
         {% endif %}
     </div>
-    {% endif %}
+
 </body>
 
 </html>
