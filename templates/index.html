@@ -9,16 +9,11 @@
         /* Modern Reset & Base Styles */
         :root {
             --primary-color: #2563eb;
-            /* Modern Blue */
             --primary-hover: #1d4ed8;
             --bg-color: #f3f4f6;
-            /* Light Grey Background */
             --card-bg: #ffffff;
-            /* White Card */
             --text-main: #111827;
-            /* Dark Grey Text */
             --text-secondary: #6b7280;
-            /* Muted Text */
             --border-color: #d1d5db;
         }
 
@@ -46,14 +41,73 @@
             font-weight: 700;
             color: var(--text-main);
             margin-bottom: 1.5rem;
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 1rem;
         }
 
-        /* Form Styling */
-        .form-group {
-            margin-bottom: 1.5rem;
+        /* --- NEW: Tab System Styles --- */
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e5e7eb;
+            margin-bottom: 2rem;
+            gap: 20px;
         }
+
+        .tab-btn {
+            padding: 0.75rem 0.5rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: -2px; /* Overlap border */
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary-color);
+        }
+
+        .tab-btn.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .tab-panel {
+            display: none; /* Hidden by default */
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .tab-panel.active {
+            display: block; /* Visible when active */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- NEW: File Upload Styles --- */
+        .file-drop-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            background-color: #f9fafb;
+            margin-bottom: 1.5rem;
+            transition: border-color 0.2s;
+        }
+        
+        .file-drop-area:hover {
+            border-color: var(--primary-color);
+            background-color: #eff6ff;
+        }
+
+        .file-instruction {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Form Styling (Existing) */
+        .form-group { margin-bottom: 1.5rem; }
 
         label {
             display: block;
@@ -63,62 +117,46 @@
             color: #374151;
         }
 
-        input[type="text"],
-        textarea,
-        select {
+        input[type="text"], textarea, select, input[type="file"] {
             display: block;
             width: 100%;
             padding: 0.625rem 0.875rem;
-            /* Comfortable padding */
             font-size: 1rem;
-            line-height: 1.5;
             color: var(--text-main);
             background-color: #fff;
             border: 1px solid var(--border-color);
             border-radius: 6px;
             box-sizing: border-box;
-            /* Ensures padding doesn't break width */
-            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
         }
 
-        input:focus,
-        textarea:focus,
-        select:focus {
+        input:focus, textarea:focus, select:focus {
             border-color: var(--primary-color);
             outline: 0;
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
-        /* Button Styling */
         button {
             display: inline-block;
             width: 100%;
             font-weight: 600;
-            text-align: center;
-            vertical-align: middle;
-            user-select: none;
             background-color: var(--primary-color);
             color: white;
             padding: 0.75rem 1.5rem;
             font-size: 1rem;
-            line-height: 1.5;
             border-radius: 6px;
             border: none;
             cursor: pointer;
             transition: background-color 0.2s;
         }
 
-        button:hover {
-            background-color: var(--primary-hover);
-        }
+        button:hover { background-color: var(--primary-hover); }
 
-        /* Results Area */
+        /* Results Area (Existing) */
         .results-header {
             margin-top: 3rem;
             margin-bottom: 1rem;
             font-size: 1.25rem;
             font-weight: 600;
-            color: var(--text-main);
         }
 
         .result-card {
@@ -127,11 +165,6 @@
             border-radius: 8px;
             padding: 1.25rem;
             margin-bottom: 1rem;
-            transition: transform 0.1s ease;
-        }
-
-        .result-card:hover {
-            border-color: #d1d5db;
         }
 
         .result-meta {
@@ -151,11 +184,8 @@
             margin-bottom: 0.5rem;
         }
 
-        .result-desc {
-            font-size: 0.95rem;
-            color: #4b5563;
-        }
-
+        .result-desc { font-size: 0.95rem; color: #4b5563; }
+        
         .badge {
             background-color: #dbeafe;
             color: #1e40af;
@@ -171,56 +201,80 @@
     <div class="container">
         <h1>SCED Course Search</h1>
 
-        <form method="POST">
-            <div class="form-group">
-                <label for="subject">Subject Area</label>
-                <select name="subject" id="subject">
-                    <option value="">-- All Subjects --</option>
-                    <option value="English Language and Literature">English Language and Literature</option>
-                    <option value="Mathematics">Mathematics</option>
-                    <option value="Life and Physical Science">Life and Physical Science</option>
-                    <option value="Social Sciences and History">Social Sciences and History</option>
-                    <option value="Visual and Performing Arts">Visual and Performing Arts</option>
-                    <option value="Religious Education and Theology">Religious Education and Theology</option>
-                    <option value="Physical, Health, and Safety Education">Physical, Health, and Safety Education
-                    </option>
-                    <option value="Military Science">Military Science</option>
-                    <option value="Information Technology">Information Technology</option>
-                    <option value="Communication and Audio/Visual Technology">Communication and Audio/Visual Technology
-                    </option>
-                    <option value="Business and Marketing">Business and Marketing</option>
-                    <option value="Manufacturing">Manufacturing</option>
-                    <option value="Health Care Science">Health Care Science</option>
-                    <option value="Public, Protective, and Government Services">Public, Protective, and Government
-                        Services</option>
-                    <option value="Hospitality and Tourism">Hospitality and Tourism</option>
-                    <option value="Architecture and Construction">Architecture and Construction</option>
-                    <option value="Agriculture, Food, and Natural Resources">Agriculture, Food, and Natural Resources
-                    </option>
-                    <option value="Human Services">Human Services</option>
-                    <option value="Transportation, Distribution and Logistics">Transportation, Distribution and
-                        Logistics</option>
-                    <option value="Engineering and Technology">Engineering and Technology</option>
-                    <option value="Miscellaneous">Miscellaneous</option>
-                    <option value="Non-Subject Specific">Non-Subject Specific</option>
-                    <option value="World Languages">World Languages</option>
-                    <option value="Integrative Learning">Integrative Learning</option>
-                </select>
-            </div>
+        <div class="tabs">
+            <div class="tab-btn active" onclick="openTab('single')">Single Search</div>
+            <div class="tab-btn" onclick="openTab('batch')">Batch Upload (CSV)</div>
+        </div>
 
-            <div class="form-group">
-                <label for="title">Course Title (Optional)</label>
-                <input type="text" name="title" id="title" placeholder="e.g., Introduction to Calculus">
-            </div>
+        <div id="panel-single" class="tab-panel active">
+            <form method="POST" action="/search">
+                <div class="form-group">
+                    <label for="subject">Subject Area</label>
+                    <select name="subject" id="subject">
+                        <option value="">-- All Subjects --</option>
+                        <option value="English Language and Literature">English Language and Literature</option>
+                        <option value="Mathematics">Mathematics</option>
+                        <option value="Life and Physical Science">Life and Physical Science</option>
+                        <option value="Social Sciences and History">Social Sciences and History</option>
+                        <option value="Visual and Performing Arts">Visual and Performing Arts</option>
+                        <option value="Religious Education and Theology">Religious Education and Theology</option>
+                        <option value="Physical, Health, and Safety Education">Physical, Health, and Safety Education</option>
+                        <option value="Military Science">Military Science</option>
+                        <option value="Information Technology">Information Technology</option>
+                        <option value="Communication and Audio/Visual Technology">Communication and Audio/Visual Technology</option>
+                        <option value="Business and Marketing">Business and Marketing</option>
+                        <option value="Manufacturing">Manufacturing</option>
+                        <option value="Health Care Science">Health Care Science</option>
+                        <option value="Public, Protective, and Government Services">Public, Protective, and Government Services</option>
+                        <option value="Hospitality and Tourism">Hospitality and Tourism</option>
+                        <option value="Architecture and Construction">Architecture and Construction</option>
+                        <option value="Agriculture, Food, and Natural Resources">Agriculture, Food, and Natural Resources</option>
+                        <option value="Human Services">Human Services</option>
+                        <option value="Transportation, Distribution and Logistics">Transportation, Distribution and Logistics</option>
+                        <option value="Engineering and Technology">Engineering and Technology</option>
+                        <option value="Miscellaneous">Miscellaneous</option>
+                        <option value="Non-Subject Specific">Non-Subject Specific</option>
+                        <option value="World Languages">World Languages</option>
+                        <option value="Integrative Learning">Integrative Learning</option>
+                    </select>
+                </div>
 
-            <div class="form-group">
-                <label for="description">Description (Semantic Search)</label>
-                <textarea name="description" id="description" rows="4"
-                    placeholder="Describe what the course covers..."></textarea>
-            </div>
+                <div class="form-group">
+                    <label for="title">Course Title (Optional)</label>
+                    <input type="text" name="title" id="title" placeholder="e.g., Introduction to Calculus">
+                </div>
 
-            <button type="submit">Search Courses</button>
-        </form>
+                <div class="form-group">
+                    <label for="description">Description (Semantic Search)</label>
+                    <textarea name="description" id="description" rows="4"
+                        placeholder="Describe what the course covers..."></textarea>
+                </div>
+
+                <button type="submit">Search Courses</button>
+            </form>
+        </div>
+
+        <div id="panel-batch" class="tab-panel">
+            <form method="POST" action="/upload" enctype="multipart/form-data">
+                <div class="file-drop-area">
+                    <div class="file-instruction">
+                        Upload a CSV file containing course descriptions. <br>
+                        <em>(Columns required: Title, Description)</em>
+                    </div>
+                    <input type="file" name="file" id="file" accept=".csv" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Processing Options</label>
+                    <div style="font-size: 0.9rem; color: #666;">
+                        <input type="checkbox" name="strict_match" id="strict_match">
+                        <label for="strict_match" style="display:inline; font-weight:normal;">Strict keyword matching only</label>
+                    </div>
+                </div>
+
+                <button type="submit">Upload and Process Batch</button>
+            </form>
+        </div>
 
         {% if submitted %}
         <div class="results-area">
@@ -239,13 +293,35 @@
             {% endfor %}
             {% else %}
             <div style="text-align: center; color: var(--text-secondary); padding: 20px;">
-                No matching courses found. Try broadening your search.
+                No matching courses found.
             </div>
             {% endif %}
         </div>
         {% endif %}
     </div>
 
-</body>
+    <script>
+        function openTab(tabName) {
+            // 1. Hide all tab panels
+            var panels = document.getElementsByClassName("tab-panel");
+            for (var i = 0; i < panels.length; i++) {
+                panels[i].classList.remove("active");
+            }
 
+            // 2. Deactivate all tab buttons
+            var btns = document.getElementsByClassName("tab-btn");
+            for (var i = 0; i < btns.length; i++) {
+                btns[i].classList.remove("active");
+            }
+
+            // 3. Show the specific tab panel and activate button
+            document.getElementById("panel-" + tabName).classList.add("active");
+            
+            // Find the button that was clicked (using event.currentTarget if we passed event, 
+            // but simple loop works here for specific matching)
+            var clickedBtn = Array.from(btns).find(btn => btn.innerText.toLowerCase().includes(tabName.split('-')[0]));
+            if(clickedBtn) clickedBtn.classList.add("active");
+        }
+    </script>
+</body>
 </html>
