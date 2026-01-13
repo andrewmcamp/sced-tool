@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request, Form
+from fastapi import FastAPI, HTTPException, Request, Form, UploadFile, File
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -6,6 +6,8 @@ from typing import List, Optional
 from contextlib import asynccontextmanager
 import lancedb
 from sentence_transformers import SentenceTransformer
+import pandas as pd
+import io
 
 # --- Configuration ---
 DB_PATH = "./sced_lancedb"
@@ -13,7 +15,6 @@ TABLE_NAME = "sced_courses"
 
 # --- Global State ---
 ml_resources = {}
-
 
 # --- Lifespan Manager ---
 @asynccontextmanager
@@ -28,21 +29,16 @@ async def lifespan(app: FastAPI):
     print("Shutting down...")
     ml_resources.clear()
 
-
 # --- Initialize App ---
 app = FastAPI(title="SCED Course Search API", lifespan=lifespan)
 
-# --- Template Configuration ---
-# This points to the "templates" folder
 templates = Jinja2Templates(directory="templates")
-
 
 # --- Data Models ---
 class SearchRequest(BaseModel):
     subject: Optional[str] = None
     title: Optional[str] = None
     description: Optional[str] = None
-
 
 class SearchResult(BaseModel):
     rank: int
@@ -52,9 +48,7 @@ class SearchResult(BaseModel):
     title: str
     description_snippet: str
 
-
 # --- Helper Function for Search Logic ---
-# We extract this so both the API and the UI can use the exact same logic
 def perform_search_logic(subject, title, description):
     model = ml_resources.get("model")
     table = ml_resources.get("table")
@@ -65,25 +59,33 @@ def perform_search_logic(subject, title, description):
     query_text = ""
     sql_filter = None
 
+    # Handle empty strings/NaNs safely
+    subject = subject if subject and str(subject).lower() != 'nan' else None
+    title = title if title and str(title).lower() != 'nan' else None
+    description = description if description and str(description).lower() != 'nan' else None
+
     # Logic for input combinations
     if subject and description:
-        # Scenario 3: Subject + Description
         query_text = description
         sql_filter = f"subject = '{subject}'"
     elif subject and title:
-        # Scenario 2: Subject + Title
         query_text = title
         sql_filter = f"subject = '{subject}'"
     elif description:
-        # Scenario 1: Description Only
         query_text = description
         sql_filter = None
+    elif title: 
+        # Added fallback: if only title is provided (common in CSVs)
+        query_text = title
+        sql_filter = None
     else:
-        return []  # Return empty if invalid input
+        return []
 
     # Execute Search
     query_vector = model.encode(query_text).tolist()
-    search_op = table.search(query_vector).limit(10)
+    
+    # We limit to 5 per specific query to keep things fast
+    search_op = table.search(query_vector).limit(5)
 
     if sql_filter:
         search_op = search_op.where(sql_filter)
@@ -103,45 +105,88 @@ def perform_search_logic(subject, title, description):
                 "subject": str(row["subject"]),
                 "course_code": str(row["sced_course_code"]),
                 "title": str(row["sced_course_title"]),
-                "description_snippet": str(row["sced_course_description"])[:200]
-                + "...",
+                "description_snippet": str(row["sced_course_description"])[:200] + "...",
             }
         )
     return results
-
 
 # --- API Endpoint (JSON) ---
 @app.post("/search", response_model=List[SearchResult])
 def search_api(request: SearchRequest):
     results = perform_search_logic(request.subject, request.title, request.description)
-    if not results and not (request.description or (request.subject and request.title)):
-        raise HTTPException(status_code=400, detail="Invalid search parameters.")
     return results
-
 
 # --- UI Routes (HTML) ---
 @app.get("/", response_class=HTMLResponse)
 def read_root(request: Request):
-    # Render the empty form
     return templates.TemplateResponse("index.html", {"request": request})
 
-
-@app.post("/", response_class=HTMLResponse)
-def submit_form(
+@app.post("/search", response_class=HTMLResponse) # Changed from "/" to "/search" to match form action
+def submit_single_search(
     request: Request,
     subject: str = Form(None),
     title: str = Form(None),
     description: str = Form(None),
 ):
-    # Clean inputs (convert empty strings to None)
     s = subject.strip() if subject else None
     t = title.strip() if title else None
     d = description.strip() if description else None
 
-    # Run logic
     results = perform_search_logic(s, t, d)
 
-    # Render template with results
     return templates.TemplateResponse(
         "index.html", {"request": request, "results": results, "submitted": True}
     )
+
+# --- NEW: Batch Upload Endpoint ---
+@app.post("/upload", response_class=HTMLResponse)
+async def upload_file(
+    request: Request, 
+    file: UploadFile = File(...), 
+    strict_match: Optional[str] = Form(None) # Checkboxes return 'on' or None
+):
+    if not file.filename.endswith('.csv'):
+        # In a real app, handle error gracefully
+        return templates.TemplateResponse("index.html", {"request": request, "results": [], "submitted": True})
+
+    # Read CSV content
+    content = await file.read()
+    
+    try:
+        # Use Pandas to parse the CSV bytes
+        df = pd.read_csv(io.BytesIO(content))
+        
+        all_results = []
+        
+        # Iterate through rows
+        for _, row in df.iterrows():
+            # Flexible column matching
+            # We look for columns named 'Title', 'Description', 'Subject' (case insensitive)
+            row_data = {k.lower(): v for k, v in row.items()}
+            
+            t = row_data.get('title')
+            d = row_data.get('description')
+            s = row_data.get('subject')
+            
+            # Run search for this row
+            matches = perform_search_logic(s, t, d)
+            
+            # Logic: If matches found, take the TOP result and add to our display list
+            # (You could change this to add all matches if you prefer)
+            if matches:
+                # We tag the result with the input title so the user knows what it matched
+                best_match = matches[0]
+                # Optional: Prepend "Matched for: [Input Title]" to description for clarity in UI
+                if t:
+                    best_match['description_snippet'] = f"[Input: {t}] " + best_match['description_snippet']
+                
+                all_results.append(best_match)
+
+        return templates.TemplateResponse(
+            "index.html", 
+            {"request": request, "results": all_results, "submitted": True}
+        )
+
+    except Exception as e:
+        print(f"Error processing CSV: {e}")
+        return templates.TemplateResponse("index.html", {"request": request, "results": []})
